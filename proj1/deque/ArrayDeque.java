@@ -24,11 +24,11 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
         frt = 0; lst= siz + 1;
     }
     private void ShrinkArray(){
-        T[] aNew = (T[])new Object[(int) (N * p)];
+        T[] aNew = (T[])new Object[siz + 2];
         for(int i= 1, p = FindNxt(frt); p != lst; i++, p = FindNxt(p)) {
             aNew[i] = a[p];
         }
-        a = aNew; N = (int) (N * p);
+        a = aNew; N = siz + 2;
         frt = 0; lst= siz + 1;
     }
     private int FindPre(int x){
