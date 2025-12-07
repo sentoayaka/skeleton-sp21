@@ -53,11 +53,11 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
         if(frt == lst)SpanArray();
     }
 
-    @Override
-    public boolean isEmpty() {
-        if(siz != 0)return false;
-        else return true;
-    }
+//    @Override
+//    public boolean isEmpty() {
+//        if(siz != 0)return false;
+//        else return true;
+//    }
 
     @Override
     public int size() {
