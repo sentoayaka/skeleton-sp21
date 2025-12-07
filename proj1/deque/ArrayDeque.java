@@ -4,7 +4,7 @@ import java.util.Iterator;
 
 public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
     int N = 8;
-    double k = 2, p = 0.25;
+    double k = 2, p = 0.25, q = 0.5;
     public T[] a;
     int frt, lst, siz;
     public ArrayDeque(){
@@ -13,7 +13,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
     }
 
     private boolean CheckTooShort(){
-        return siz < N * p;
+        return ( siz < N * p ) && ( N >= 16 );
     }
     private void SpanArray(){
         T[] aNew = (T[])new Object[(int) (N * k)];
@@ -24,11 +24,11 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
         frt = 0; lst= siz + 1;
     }
     private void ShrinkArray(){
-        T[] aNew = (T[])new Object[siz + 2];
+        T[] aNew = (T[])new Object[(int) (N * q)];
         for(int i= 1, p = FindNxt(frt); p != lst; i++, p = FindNxt(p)) {
             aNew[i] = a[p];
         }
-        a = aNew; N = siz + 2;
+        a = aNew; N = (int) (N * q);
         frt = 0; lst= siz + 1;
     }
     private int FindPre(int x){
@@ -77,19 +77,15 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
     @Override
     public T removeFirst() {
         if(siz == 0) return null;
-        siz--; frt = FindNxt(frt);
-        T cur = a[frt];
         if(CheckTooShort())ShrinkArray();
-        return cur;
+        siz--; frt = FindNxt(frt); return a[frt];
     }
 
     @Override
     public T removeLast() {
         if(siz == 0) return null;
-        siz--; lst = FindPre(lst);
-        T cur = a[lst];
         if(CheckTooShort())ShrinkArray();
-        return cur;
+        siz--; lst = FindPre(lst);return a[lst];
     }
 
     @Override
