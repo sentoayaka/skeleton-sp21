@@ -21,7 +21,7 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
             return get(cur++);
         }
     }
-    public class IntNode<T> {
+    public class IntNode {
         T val;
         IntNode pre, nxt;
         public IntNode(){
@@ -41,10 +41,10 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
 
     public void addFirst(T item) {
         if(siz == 0){
-            frt = lst = new IntNode<>(item);
+            frt = lst = new IntNode(item);
         }
         else {
-            IntNode cur = new IntNode<>(item);
+            IntNode cur = new IntNode(item);
             frt.pre = cur; cur.nxt = frt;
             frt = cur;
         }
@@ -53,10 +53,10 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
 
     public void addLast(T item) {
         if(siz == 0){
-            frt = lst = new IntNode<>(item);
+            frt = lst = new IntNode(item);
         }
         else {
-            IntNode cur = new IntNode<>(item);
+            IntNode cur = new IntNode(item);
             lst.nxt = cur; cur.pre = lst;
             lst = cur;
         }
@@ -86,7 +86,7 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
 
     public T removeFirst() {
         if(siz == 0) return null;
-        siz --; IntNode<T> cur = frt;
+        siz --; IntNode cur = frt;
         if(siz == 0)frt = lst = null;
         else {frt = frt.nxt; frt.pre = null;}
         return cur.val;
@@ -94,7 +94,7 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
 
     public T removeLast() {
         if(siz == 0) return null;
-        siz --; IntNode<T> cur = lst;
+        siz --; IntNode cur = lst;
         if(siz == 0)lst = lst = null;
         else {lst = lst.pre; lst.nxt = null;}
         return cur.val;
@@ -102,7 +102,7 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
 
     public T get(int index) {
         if(index >= siz) return null;
-        IntNode<T> p = frt;
+        IntNode p = frt;
         while(index != 0){
             index --;
             p = p.nxt;
