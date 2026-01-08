@@ -41,10 +41,6 @@ public class CapersRepository {
         if(!DOG_FOLDER.exists()) {
             DOG_FOLDER.mkdir();
         }
-
-        if(!STORY_FILE.exists()) {
-            Utils.writeContents(STORY_FILE, "");
-        }
     }
 
     /**
@@ -54,8 +50,13 @@ public class CapersRepository {
      */
     public static void writeStory(String text) {
         String newContent;
-        String oldContent = Utils.readContentsAsString(STORY_FILE);
-        newContent = oldContent + "\n" + text;
+        if(!STORY_FILE.exists()) {
+            newContent = text;
+        } else {
+            String oldContent = Utils.readContentsAsString(STORY_FILE);
+            newContent = oldContent + "\n" + text;
+        }
+
         Utils.writeContents(STORY_FILE, newContent);
         System.out.println(newContent);
     }
