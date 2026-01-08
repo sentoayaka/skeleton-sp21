@@ -27,14 +27,31 @@ public class Commit implements Serializable {
 
     public String logMessage, commitTime, parentRef, parentMergeRef, SHA1ID;
 
-    public Map<String, String> fileToBolb;
+    public Map<String, String> fileBlobTable;
 
-    private String message;
+    private String name;
 
     /* TODO: fill in the rest of this class. */
 
+    public Commit(String message, String time, String parent, Map<String, String> blobs) {
+        this.logMessage = message;
+        this.commitTime = time;
+        this.parentRef = parent;
+        this.fileBlobTable = blobs;
+    }
+
     public static Commit fromFile(String name){
-        File commitFile = join(Repository.HEADS_FOLDER, name);
+        File commitFile = join(Repository.OBJECTS_FOLDER, name);
         return readObject(commitFile, Commit.class);
+    }
+
+    public String saveCommit(){
+        byte[] content = serialize(this);
+        String commitID = sha1(content);
+
+        File commitFile = join(Repository.OBJECTS_FOLDER, commitID);
+        writeObject(commitFile, this);
+
+        return commitID;
     }
 }
