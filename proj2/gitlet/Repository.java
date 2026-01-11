@@ -193,7 +193,9 @@ public class Repository {
         }
         List<String> objectIDs = plainFilenamesIn(OBJECTS_FOLDER);
         for (String fullID : objectIDs) {
-            if (fullID.startsWith(shortID)) return fullID;
+            if (fullID.startsWith(shortID)) {
+                return fullID;
+            }
         }
         return null;
     }
@@ -404,7 +406,7 @@ public class Repository {
                 System.out.println("Date: " + commit.commitTime);
                 System.out.println(commit.logMessage);
                 System.out.println();
-            } catch(Exception e) {
+            } catch (Exception e) {
                 continue;
             }
         }
@@ -422,7 +424,7 @@ public class Repository {
 
                     System.out.println(name);
                 }
-            } catch(IllegalArgumentException e) {
+            } catch (IllegalArgumentException e) {
                 continue;
             }
         }
@@ -484,8 +486,12 @@ public class Repository {
             if (!ancestors.contains(id)) {
                 ancestors.add(id);
                 Commit c = Commit.fromFile(id);
-                if (c.parent != null) q.add(c.parent);
-                if (c.mergeParent != null) q.add(c.mergeParent);
+                if (c.parent != null) {
+                    q.add(c.parent);
+                }
+                if (c.mergeParent != null) {
+                    q.add(c.mergeParent);
+                }
             }
         }
         HashSet<String> visited = new HashSet<>();
@@ -496,8 +502,12 @@ public class Repository {
             if (!visited.contains(id)) {
                 visited.add(id);
                 Commit c = Commit.fromFile(id);
-                if (c.parent != null) q.add(c.parent);
-                if (c.mergeParent != null) q.add(c.mergeParent);
+                if (c.parent != null) {
+                    q.add(c.parent);
+                }
+                if (c.mergeParent != null) {
+                    q.add(c.mergeParent);
+                }
             }
         }
         return null;
@@ -609,7 +619,6 @@ public class Repository {
         writeObject(STAGE_FILE, stage);
         if (hasConflict) {
             System.out.println("Encountered a merge conflict.");
-            System.exit(0);
         }
 
         String message = "Merged " + givenBranchID + " into " + currentBranchID + ".";

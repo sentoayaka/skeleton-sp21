@@ -1,13 +1,6 @@
 package gitlet;
 
-/** Driver class for Gitlet, a subset of the Git version-control system.
- *  @author TODO
- */
 public class Main {
-
-    /** Usage: java gitlet.Main ARGS, where ARGS contains
-     *  <COMMAND> <OPERAND1> <OPERAND2> ... 
-     */
 
     private static void validateArgs(String[] args, int expectedCount) {
         if (args.length != expectedCount) {
@@ -17,8 +10,7 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        // TODO: what if args is empty?
-        if(args.length == 0){
+        if (args.length == 0){
             System.out.println("Please enter a command.");
             System.exit(0);
         }
@@ -29,7 +21,7 @@ public class Main {
             System.exit(0);
         }
 
-        switch(firstArg) {
+        switch (firstArg) {
             case "init":
                 validateArgs(args, 1);
                 Repository.init();
@@ -51,11 +43,11 @@ public class Main {
                 break;
 
             case "checkout":
-                if(args.length == 3 && args[1].equals("--")) {
+                if (args.length == 3 && args[1].equals("--")) {
                     Repository.checkoutFile(args[2]);
-                } else if(args.length == 4 && args[2].equals("--")) {
+                } else if (args.length == 4 && args[2].equals("--")) {
                     Repository.checkoutCommitFile(args[1], args[3]);
-                } else if(args.length == 2) {
+                } else if (args.length == 2) {
                     Repository.checkoutBranch(args[1]);
                 } else {
                     System.out.println("Incorrect operands.");
