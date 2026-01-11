@@ -807,7 +807,7 @@ public class Repository {
             visited.add(id);
 
             try {
-                Commit c = readObject(remoteObjectFile, Commit.class);
+                Commit c = readObject(localObjectFile, Commit.class);
 
                 if (c.parent != null) {
                     q.add(c.parent);
@@ -849,7 +849,7 @@ public class Repository {
         File remoteHeadsDir = join(remoteGitletDir, "heads");
         File remoteBranchFile = join(remoteHeadsDir, remoteBranchName);
 
-        if (!remoteBranchFile.exists()) {
+        if (remoteBranchFile.exists()) {
             String remoteHeadID = readContentsAsString(remoteBranchFile);
             String currentHeadID = getHeadCommitID();
 
