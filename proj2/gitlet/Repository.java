@@ -10,7 +10,7 @@ import static gitlet.Utils.readContentsAsString;
 
 public class Repository {
 
-    public static final File CWD = new File(System.getProperty("user.dir"));
+    public static final File CWD = new File(".");
 
     public static final File GITLET_DIR = join(CWD, ".gitlet");
 
@@ -291,9 +291,9 @@ public class Repository {
                 String blobID = sha1(readContents(file));
                 if (!Objects.equals(headCommit.fileBlobTable.get(name), blobID) && !stage.added.containsKey(name)) {
                     modifications.add(name + " (modified)");
-                } else if (!stage.removed.contains(name)){
-                    modifications.add(name + " (deleted)");
                 }
+            } else if (!stage.removed.contains(name)){
+                modifications.add(name + " (deleted)");
             }
         }
 
@@ -313,7 +313,7 @@ public class Repository {
         for (String line : modifications) {
             System.out.println(line);
         }
-     }
+    }
 
      private static void printUntracked(Commit headCommit, Stage stage, List<String> cwdFiles) {
          List<String> untracked = new ArrayList<>();
@@ -568,9 +568,15 @@ public class Repository {
         Commit splitCommit = Commit.fromFile(splitCommitID);
         Commit currentCommit = Commit.fromFile(currentCommitID);
         Commit givenCommit = Commit.fromFile(givenCommitID);
-        for (String name : splitCommit.fileBlobTable.keySet()) files.add(name);
-        for (String name : currentCommit.fileBlobTable.keySet()) files.add(name);
-        for (String name : givenCommit.fileBlobTable.keySet()) files.add(name);
+        for (String name : splitCommit.fileBlobTable.keySet()) {
+            files.add(name);
+        }
+        for (String name : currentCommit.fileBlobTable.keySet()) {
+            files.add(name);
+        }
+        for (String name : givenCommit.fileBlobTable.keySet()) {
+            files.add(name);
+        }
 
         Map<String, String> newFileTable = new HashMap<>(currentCommit.fileBlobTable);
 
@@ -619,6 +625,7 @@ public class Repository {
         writeObject(STAGE_FILE, stage);
         if (hasConflict) {
             System.out.println("Encountered a merge conflict.");
+//            System.exit(0);
         }
 
         String message = "Merged " + givenBranchID + " into " + currentBranchID + ".";
