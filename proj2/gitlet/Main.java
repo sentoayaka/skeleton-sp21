@@ -83,6 +83,11 @@ public class Main {
                 Repository.find(args[1]);
                 break;
 
+            case "reset":
+                validateArgs(args, 2);
+                Repository.reset(args[1]);
+                break;
+
             case "branch":
                 validateArgs(args, 2);
                 Repository.addBranch(args[1]);
