@@ -22,6 +22,8 @@ public class Repository {
 
     public static final File STAGE_FILE = join(GITLET_DIR, "STAGE");
 
+    public static final File REMOTE_FILE = join(GITLET_DIR, "REMOTES");
+
     private static String formatDate(Date date) {
         // 格式必须为：星期几 月份 日期 时间 年份 时区
         // 例如：Thu Jan 1 00:00:00 1970 -0800
@@ -636,5 +638,237 @@ public class Repository {
 
         writeContents(getHeadBranchFile(), mergeCommitID);
         writeObject(STAGE_FILE, new Stage());
+    }
+
+    public static void addRemote(String remoteName, String remotePath) {
+        HashMap<String, String> remotes = new HashMap<>();
+        if (REMOTE_FILE.exists()) {
+            remotes = readObject(REMOTE_FILE, HashMap.class);
+        }
+
+        if (remotes.containsKey(remoteName)) {
+            System.out.println("A remote with that name already exists.");
+            System.exit(0);
+        }
+
+        String normalizedPath = remotePath.replace("/", File.separator);
+        remotes.put(remoteName, normalizedPath);
+        writeObject(REMOTE_FILE, remotes);
+    }
+
+    public static void removeRemote(String remoteName) {
+        HashMap<String, String> remotes = new HashMap<>();
+        if (REMOTE_FILE.exists()) {
+            remotes = readObject(REMOTE_FILE, HashMap.class);
+        }
+
+        if (!remotes.containsKey(remoteName)) {
+            System.out.println("A remote with that name does not exist.");
+            System.exit(0);
+        }
+
+        remotes.remove(remoteName);
+        writeObject(REMOTE_FILE, remotes);
+    }
+
+    private static void copyCommitsAndBlobs(File remoteGitletDir, String remoteHeadCommitID) {
+        File remoteObjectsDir = join(remoteGitletDir, "objects");
+
+        Queue<String> q = new ArrayDeque<>();
+        q.add(remoteHeadCommitID);
+        Set<String> visited = new HashSet<>();
+
+        while (!q.isEmpty()) {
+            String id = q.poll();
+            File localObjectFile = join(OBJECTS_FOLDER, id);
+            File remoteObjectFile = join(remoteObjectsDir, id);
+
+            if (!localObjectFile.exists()) {
+                if (!remoteObjectFile.exists()) {
+                    continue;
+                }
+                byte[] content = readContents(remoteObjectFile);
+                writeContents(localObjectFile, content);
+            }
+
+            if (visited.contains(id)) {
+                continue;
+            }
+            visited.add(id);
+
+            try {
+                Commit c = readObject(remoteObjectFile, Commit.class);
+
+                if (c.parent != null) {
+                    q.add(c.parent);
+                }
+                if (c.mergeParent != null) {
+                    q.add(c.mergeParent);
+                }
+
+                for(String blobID : c.fileBlobTable.values()) {
+                    if (!join(OBJECTS_FOLDER, blobID).exists()) {
+                        File remoteBlobFile = join(remoteObjectsDir, blobID);
+                        if (remoteBlobFile.exists()) {
+                            writeContents(join(OBJECTS_FOLDER, blobID), readContents(remoteBlobFile));
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                continue;
+            }
+        }
+    }
+
+    public static void fetch(String remoteName, String remoteBranchName) {
+        HashMap<String, String> remotes = new HashMap<>();
+        if (REMOTE_FILE.exists()) {
+            remotes = readObject(REMOTE_FILE, HashMap.class);
+        }
+        if (!remotes.containsKey(remoteName)) {
+            System.out.println("Remote directory not found.");
+            System.exit(0);
+        }
+
+        File remoteGitletDir = new File(remotes.get(remoteName));
+        if (!remoteGitletDir.exists()) {
+            System.out.println("Remote directory not found.");
+            System.exit(0);
+        }
+
+        File remoteHeadsDir = join(remoteGitletDir, "heads");
+        File remoteBranchFile = join(remoteHeadsDir, remoteBranchName);
+
+        if(!remoteBranchFile.exists()) {
+            System.out.println("That remote does not have that branch.");
+            System.exit(0);
+        }
+
+        String remoteHeadID = readContentsAsString(remoteBranchFile);
+
+        copyCommitsAndBlobs(remoteGitletDir, remoteHeadID);
+
+        File localRemoteBranchDir = join(HEADS_FOLDER, remoteName);
+        localRemoteBranchDir.mkdirs();
+        File localRemoteBranchFile = join(localRemoteBranchDir, remoteBranchName); // heads/origin/master
+
+        writeContents(localRemoteBranchFile, remoteHeadID);
+    }
+
+    private static boolean isAncestor(String remoteCommitId, String currentCommitID) {
+        Queue<String> q = new ArrayDeque<>();
+        q.add(currentCommitID);
+        Set<String> visited = new HashSet<>();
+
+        while (!q.isEmpty()) {
+            String id = q.poll();
+            if (id.equals(remoteCommitId)) {
+                return true;
+            }
+            if (visited.contains(id)) {
+                continue;
+            }
+            visited.add(id);
+            Commit c = Commit.fromFile(id);
+
+            if (c.parent != null) {
+                q.add(c.parent);
+            }
+            if (c.mergeParent != null) {
+                q.add(c.mergeParent);
+            }
+        }
+        return false;
+    }
+
+    private static void pushObjectsToRemote(File remoteGitletDir, String headCommitID) {
+        File remoteObjectsDir = join(remoteGitletDir, "objects");
+
+        Queue<String> q = new ArrayDeque<>();
+        q.add(headCommitID);
+        Set<String> visited = new HashSet<>();
+
+        while (!q.isEmpty()) {
+            String id = q.poll();
+
+            File localObjectFile = join(OBJECTS_FOLDER, id);
+            File remoteObjectFile = join(remoteObjectsDir, id);
+
+            if (remoteObjectFile.exists()) {
+                continue;
+            }
+
+            byte[] content = readContents(localObjectFile);
+            writeContents(remoteObjectFile, content);
+
+            if (visited.contains(id)) {
+                continue;
+            }
+            visited.add(id);
+
+            try {
+                Commit c = readObject(remoteObjectFile, Commit.class);
+
+                if (c.parent != null) {
+                    q.add(c.parent);
+                }
+                if (c.mergeParent != null) {
+                    q.add(c.mergeParent);
+                }
+
+                for(String blobID : c.fileBlobTable.values()) {
+                    if (!join(remoteObjectsDir, blobID).exists()) {
+                        File blobFile = join(OBJECTS_FOLDER, blobID);
+                        if (blobFile.exists()) {
+                            writeContents(join(remoteObjectsDir, blobID), readContents(blobFile));
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                continue;
+            }
+        }
+    }
+
+    public static void push(String remoteName, String remoteBranchName) {
+        HashMap<String, String> remotes = new HashMap<>();
+        if (REMOTE_FILE.exists()) {
+            remotes = readObject(REMOTE_FILE, HashMap.class);
+        }
+        if (!remotes.containsKey(remoteName)) {
+            System.out.println("Remote directory not found.");
+            System.exit(0);
+        }
+
+        File remoteGitletDir = new File(remotes.get(remoteName));
+        if (!remoteGitletDir.exists()) {
+            System.out.println("Remote directory not found.");
+            System.exit(0);
+        }
+
+        File remoteHeadsDir = join(remoteGitletDir, "heads");
+        File remoteBranchFile = join(remoteHeadsDir, remoteBranchName);
+
+        if (!remoteBranchFile.exists()) {
+            String remoteHeadID = readContentsAsString(remoteBranchFile);
+            String currentHeadID = getHeadCommitID();
+
+            if (!isAncestor(remoteHeadID, currentHeadID)) {
+                System.out.println("Please pull down remote changes before pushing.");
+                System.exit(0);
+            }
+        }
+
+        String headCommitID = getHeadCommitID();
+        pushObjectsToRemote(remoteGitletDir, headCommitID);
+
+        writeContents(remoteBranchFile, headCommitID);
+    }
+
+    public static void pull(String remoteName, String remoteBrachName) {
+        fetch(remoteName, remoteBrachName);
+
+        String mergeBranchName = remoteName + File.separator +remoteBrachName;
+        merge(mergeBranchName);
     }
 }
