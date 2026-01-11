@@ -10,7 +10,7 @@ import static gitlet.Utils.readContentsAsString;
 
 public class Repository {
 
-    public static final File CWD = new File(".");
+    public static final File CWD = new File(System.getProperty("user.dir"));
 
     public static final File GITLET_DIR = join(CWD, ".gitlet");
 
