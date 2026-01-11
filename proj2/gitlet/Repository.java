@@ -706,7 +706,7 @@ public class Repository {
                     q.add(c.mergeParent);
                 }
 
-                for(String blobID : c.fileBlobTable.values()) {
+                for (String blobID : c.fileBlobTable.values()) {
                     if (!join(OBJECTS_FOLDER, blobID).exists()) {
                         File remoteBlobFile = join(remoteObjectsDir, blobID);
                         if (remoteBlobFile.exists()) {
@@ -739,7 +739,7 @@ public class Repository {
         File remoteHeadsDir = join(remoteGitletDir, "heads");
         File remoteBranchFile = join(remoteHeadsDir, remoteBranchName);
 
-        if(!remoteBranchFile.exists()) {
+        if (!remoteBranchFile.exists()) {
             System.out.println("That remote does not have that branch.");
             System.exit(0);
         }
@@ -816,7 +816,7 @@ public class Repository {
                     q.add(c.mergeParent);
                 }
 
-                for(String blobID : c.fileBlobTable.values()) {
+                for (String blobID : c.fileBlobTable.values()) {
                     if (!join(remoteObjectsDir, blobID).exists()) {
                         File blobFile = join(OBJECTS_FOLDER, blobID);
                         if (blobFile.exists()) {
@@ -865,10 +865,10 @@ public class Repository {
         writeContents(remoteBranchFile, headCommitID);
     }
 
-    public static void pull(String remoteName, String remoteBrachName) {
-        fetch(remoteName, remoteBrachName);
+    public static void pull(String remoteName, String remoteBranchName) {
+        fetch(remoteName, remoteBranchName);
 
-        String mergeBranchName = remoteName + File.separator +remoteBrachName;
+        String mergeBranchName = remoteName + File.separator +remoteBranchName;
         merge(mergeBranchName);
     }
 }
