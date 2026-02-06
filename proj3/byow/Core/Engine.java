@@ -106,6 +106,7 @@ public class Engine {
 
             GameState state = (GameState) is.readObject();
 
+            this.currentLevel = state.currentLevel;
             this.seed = state.seed;
             this.world = generateWorld(this.seed);
             this.player = state.player;
@@ -131,7 +132,7 @@ public class Engine {
             FileOutputStream fs = new FileOutputStream(f);
             ObjectOutputStream os = new ObjectOutputStream(fs);
 
-            GameState state = new GameState(this.seed, this.player, this.monster);
+            GameState state = new GameState(this.currentLevel, this.seed, this.player, this.monster);
 
             os.writeObject(state);
             os.close();
@@ -140,7 +141,7 @@ public class Engine {
         }
     }
 
-    private void render() {
+    public void render() {
 
         TETile[][] offsetWorld = new TETile[WIDTH][HEIGHT];
         int visionRange = 5;
@@ -157,8 +158,8 @@ public class Engine {
             }
         }
 
-        ter.renderFrame(world);
-//        ter.renderFrame(offsetWorld);
+//        ter.renderFrame(world);
+        ter.renderFrame(offsetWorld);
 
         StdDraw.setPenColor(Color.WHITE);
         Font font = new Font("Monospaced", Font.BOLD, 12);
@@ -198,11 +199,11 @@ public class Engine {
                 movePlayer(c);
                 monster.moveTowards(player.x, player.y, world);
 
-                if (player.tile.equals(Tileset.UNLOCKED_DOOR)) {
-                    currentLevel++;
-                    seed += 1;
-                    startNewGame(inputSource);
-                }
+//                if (player.tile.equals(Tileset.UNLOCKED_DOOR)) {
+//                    currentLevel++;
+//                    seed += 1;
+//                    startNewGame(inputSource);
+//                }
             } else if (c == 'L') {
                 loadGame();
             } else if (c == ':') {
