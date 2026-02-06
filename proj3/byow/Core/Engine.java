@@ -21,6 +21,7 @@ public class Engine {
     private boolean showGUI;
     private Player player;
     private Monster monster;
+    private Entity exit;
     private TETile[][] world;
     private int currentLevel;
     private long seed;
@@ -38,7 +39,6 @@ public class Engine {
         }
 
         seed = Long.parseLong(seedString);
-        rand = new Random(seed);
     }
 
     private TETile[][] generateWorld(long s) {
@@ -48,7 +48,7 @@ public class Engine {
 
     private void initializePlayer() {
         while (true) {
-            int x = RandomUtils.uniform(rand, 0, WIDTH - 1);
+            int x = RandomUtils.uniform(rand, 0, WIDTH);
             int y = RandomUtils.uniform(rand, 0, HEIGHT - 1);
             if (Entity.canMoveTo(x, y, world)) {
                 player = new Player(x, y, world[x][y]);
@@ -60,7 +60,7 @@ public class Engine {
 
     private void initializeMonster() {
         while (true) {
-            int x = RandomUtils.uniform(rand, 0, WIDTH - 1);
+            int x = RandomUtils.uniform(rand, 0, WIDTH);
             int y = RandomUtils.uniform(rand, 0, HEIGHT - 1);
             if (Entity.canMoveTo(x, y, world) && (x != player.x || y != player.y)) {
                 monster = new Monster(x, y, world[x][y]);
@@ -75,6 +75,7 @@ public class Engine {
             int x = RandomUtils.uniform(rand, 0, WIDTH - 1);
             int y = RandomUtils.uniform(rand, 0, HEIGHT - 1);
             if (Entity.canMoveTo(x, y, world) && (x != player.x || y != player.y) && (x != monster.x || y != monster.y)) {
+                exit = new Entity(x, y, Tileset.UNLOCKED_DOOR);
                 world[x][y] = Tileset.UNLOCKED_DOOR;
                 return;
             }
@@ -106,9 +107,11 @@ public class Engine {
 
             GameState state = (GameState) is.readObject();
 
-            this.currentLevel = state.currentLevel;
             this.seed = state.seed;
+            this.rand = new Random(seed);
             this.world = generateWorld(this.seed);
+            this.currentLevel = state.currentLevel;
+
             this.player = state.player;
             player.tile = world[player.x][player.y];
             this.world[player.x][player.y] = Tileset.AVATAR;
@@ -116,6 +119,9 @@ public class Engine {
             this.monster = state.monster;
             monster.tile = world[monster.x][monster.y];
             this.world[monster.x][monster.y] = Tileset.MONSTER;
+
+            this.exit = state.exit;
+            this.world[exit.x][exit.y] = Tileset.UNLOCKED_DOOR;
 
             is.close();
         } catch (Exception e) {
@@ -132,7 +138,7 @@ public class Engine {
             FileOutputStream fs = new FileOutputStream(f);
             ObjectOutputStream os = new ObjectOutputStream(fs);
 
-            GameState state = new GameState(this.currentLevel, this.seed, this.player, this.monster);
+            GameState state = new GameState(this.currentLevel, this.seed, this.player, this.monster, this.exit);
 
             os.writeObject(state);
             os.close();
@@ -158,8 +164,8 @@ public class Engine {
             }
         }
 
-//        ter.renderFrame(world);
-        ter.renderFrame(offsetWorld);
+        ter.renderFrame(world);
+//        ter.renderFrame(offsetWorld);
 
         StdDraw.setPenColor(Color.WHITE);
         Font font = new Font("Monospaced", Font.BOLD, 12);
@@ -179,7 +185,8 @@ public class Engine {
     }
 
 
-    private void startNewGame(InputSource inputSource) {
+    private void startNewGame() {
+        this.rand = new Random(seed);
         world = generateWorld(seed);
         initializePlayer();
         initializeMonster();
@@ -194,15 +201,15 @@ public class Engine {
 
             if (c == 'N') {
                 getSeed(inputSource);
-                startNewGame(inputSource);
+                startNewGame();
             } else if (c == 'W' || c == 'S' || c == 'A' || c == 'D') {
                 movePlayer(c);
-//                monster.moveTowards(player.x, player.y, world);
+                monster.moveTowards(player.x, player.y, world);
 
                 if (player.tile.equals(Tileset.UNLOCKED_DOOR)) {
                     currentLevel++;
                     seed += 1;
-                    startNewGame(inputSource);
+                    startNewGame();
                 }
             } else if (c == 'L') {
                 loadGame();
