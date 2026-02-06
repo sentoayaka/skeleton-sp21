@@ -20,11 +20,13 @@ public class Engine {
     public static final int HEIGHT = 30;
     private boolean showGUI;
     private Player player;
+    private Monster monster;
     private TETile[][] world;
+    private int currentLevel;
     private long seed;
     private Random rand;
 
-    private long getSeed(InputSource inputSource) {
+    private void getSeed(InputSource inputSource) {
         String seedString = "";
         while (inputSource.hasNextKey()) {
             char c = inputSource.getNextKey();
@@ -37,7 +39,6 @@ public class Engine {
 
         seed = Long.parseLong(seedString);
         rand = new Random(seed);
-        return seed;
     }
 
     private TETile[][] generateWorld(long s) {
@@ -45,13 +46,36 @@ public class Engine {
         return mg.build();
     }
 
-    private void initializePlayerPosition() {
+    private void initializePlayer() {
         while (true) {
             int x = RandomUtils.uniform(rand, 0, WIDTH - 1);
             int y = RandomUtils.uniform(rand, 0, HEIGHT - 1);
-            if (Player.checkLegality(x, y, world)) {
+            if (Entity.canMoveTo(x, y, world)) {
                 player = new Player(x, y, world[x][y]);
                 world[x][y] = Tileset.AVATAR;
+                return;
+            }
+        }
+    }
+
+    private void initializeMonster() {
+        while (true) {
+            int x = RandomUtils.uniform(rand, 0, WIDTH - 1);
+            int y = RandomUtils.uniform(rand, 0, HEIGHT - 1);
+            if (Entity.canMoveTo(x, y, world) && (x != player.x || y != player.y)) {
+                monster = new Monster(x, y, world[x][y]);
+                world[x][y] = Tileset.MONSTER;
+                return;
+            }
+        }
+    }
+
+    private void initializeExit() {
+        while (true) {
+            int x = RandomUtils.uniform(rand, 0, WIDTH - 1);
+            int y = RandomUtils.uniform(rand, 0, HEIGHT - 1);
+            if (Entity.canMoveTo(x, y, world) && (x != player.x || y != player.y) && (x != monster.x || y != monster.y)) {
+                world[x][y] = Tileset.UNLOCKED_DOOR;
                 return;
             }
         }
@@ -88,6 +112,10 @@ public class Engine {
             player.tile = world[player.x][player.y];
             this.world[player.x][player.y] = Tileset.AVATAR;
 
+            this.monster = state.monster;
+            monster.tile = world[monster.x][monster.y];
+            this.world[monster.x][monster.y] = Tileset.MONSTER;
+
             is.close();
         } catch (Exception e) {
             System.out.println(e);
@@ -103,7 +131,7 @@ public class Engine {
             FileOutputStream fs = new FileOutputStream(f);
             ObjectOutputStream os = new ObjectOutputStream(fs);
 
-            GameState state =new GameState(this.seed, this.player);
+            GameState state = new GameState(this.seed, this.player, this.monster);
 
             os.writeObject(state);
             os.close();
@@ -129,38 +157,52 @@ public class Engine {
             }
         }
 
-        ter.renderFrame(offsetWorld);
+        ter.renderFrame(world);
+//        ter.renderFrame(offsetWorld);
 
         StdDraw.setPenColor(Color.WHITE);
-        Font font = new Font("Monospaced", Font.BOLD, 14);
+        Font font = new Font("Monospaced", Font.BOLD, 12);
         StdDraw.setFont(font);
 
         int mouseX = (int) StdDraw.mouseX();
         int mouseY = (int) StdDraw.mouseY();
 
+        String invDesc = "Inventory: " + player.inventory.toString();
+        String tileDesc = "";
         if (mouseX >= 0 && mouseX < WIDTH && mouseY >= 0 && mouseY < HEIGHT - 1) {
-            String description = world[mouseX][mouseY].description();
-            StdDraw.textLeft(1, HEIGHT - 1, "Tile: " + description);
+            tileDesc = world[mouseX][mouseY].description();
         }
-
+        StdDraw.textLeft(1, HEIGHT - 1, "Current: " + currentLevel + " | " + "Tile: " + tileDesc + " | " + invDesc);
         StdDraw.show();
         StdDraw.pause(10);
     }
 
+
     private void startNewGame(InputSource inputSource) {
-        long seed = getSeed(inputSource);
         world = generateWorld(seed);
-        initializePlayerPosition();
+        initializePlayer();
+        initializeMonster();
+        initializeExit();
     }
 
     private void play(InputSource inputSource) {
+        currentLevel = 1;
+
         while (inputSource.hasNextKey()) {
             char c = inputSource.getNextKey();
 
             if (c == 'N') {
+                getSeed(inputSource);
                 startNewGame(inputSource);
             } else if (c == 'W' || c == 'S' || c == 'A' || c == 'D') {
                 movePlayer(c);
+                monster.moveTowards(player.x, player.y, world);
+
+                if (player.tile.equals(Tileset.UNLOCKED_DOOR)) {
+                    currentLevel++;
+                    seed += 1;
+                    startNewGame(inputSource);
+                }
             } else if (c == 'L') {
                 loadGame();
             } else if (c == ':') {
@@ -197,5 +239,9 @@ public class Engine {
 
     public boolean isShowGUI() {
         return showGUI;
+    }
+
+    public int getCurrentLevel() {
+        return currentLevel;
     }
 }

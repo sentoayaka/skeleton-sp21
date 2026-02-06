@@ -164,10 +164,23 @@ public class MapGenerator {
         }
     }
 
+    private void addItems(int count) {
+        int added = 0;
+        while (added < count) {
+            int x = RandomUtils.uniform(random, 0, width);
+            int y = RandomUtils.uniform(random, 0, height - 1);
+            if (world[x][y].equals(Tileset.FLOOR)) {
+                world[x][y] = Tileset.FLOWER; // 假设 FLOWER 是我们要捡的物品
+                added++;
+            }
+        }
+    }
+
     public TETile[][] build() {
         List<Room> rooms = addRooms();
         addHallways(rooms);
         addWalls();
+        addItems(10);
         return world;
     }
 }
