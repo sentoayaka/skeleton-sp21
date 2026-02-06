@@ -128,6 +128,7 @@ public class Engine {
         }
 
         StdDraw.show();
+        StdDraw.pause(10);
     }
 
     private void startNewGame(InputSource inputSource) {
@@ -157,7 +158,6 @@ public class Engine {
             if (showGUI) {
                 render();
             }
-            StdDraw.pause(10);
         }
     }
 
