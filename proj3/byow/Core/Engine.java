@@ -197,13 +197,13 @@ public class Engine {
                 startNewGame(inputSource);
             } else if (c == 'W' || c == 'S' || c == 'A' || c == 'D') {
                 movePlayer(c);
-                monster.moveTowards(player.x, player.y, world);
+//                monster.moveTowards(player.x, player.y, world);
 
-//                if (player.tile.equals(Tileset.UNLOCKED_DOOR)) {
-//                    currentLevel++;
-//                    seed += 1;
-//                    startNewGame(inputSource);
-//                }
+                if (player.tile.equals(Tileset.UNLOCKED_DOOR)) {
+                    currentLevel++;
+                    seed += 1;
+                    startNewGame(inputSource);
+                }
             } else if (c == 'L') {
                 loadGame();
             } else if (c == ':') {
