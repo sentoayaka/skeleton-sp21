@@ -6,6 +6,8 @@ import byow.TileEngine.Tileset;
 
 import java.util.Random;
 
+import static byow.lab12.HexWorld.drawTesselationHexagons;
+
 /**
  * Draws a world that contains RANDOM tiles.
  */
@@ -48,10 +50,17 @@ public class RandomWorldDemo {
         TERenderer ter = new TERenderer();
         ter.initialize(WIDTH, HEIGHT);
 
-        TETile[][] randomTiles = new TETile[WIDTH][HEIGHT];
-        fillWithRandomTiles(randomTiles);
+        TETile[][] world = new TETile[WIDTH][HEIGHT];
+        for (int x = 0; x < WIDTH; x += 1) {
+            for (int y = 0; y < HEIGHT; y += 1) {
+                world[x][y] = Tileset.NOTHING;
+            }
+        }
+//        fillWithRandomTiles(world);
 
-        ter.renderFrame(randomTiles);
+        drawTesselationHexagons(world, 10, 10);
+
+        ter.renderFrame(world);
     }
 
 
