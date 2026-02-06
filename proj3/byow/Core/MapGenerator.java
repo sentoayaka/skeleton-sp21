@@ -28,10 +28,10 @@ public class MapGenerator {
         int centerY() { return yL + h / 2; }
 
         boolean overlaps(Room other) {
-            if (this.xL + this.w <= other.xL ||
-                this.xL >= other.xL + other.w ||
-                this.yL + this.h <= other.yL ||
-                this.yL >= other.yL + other.h) {
+            if (this.xL + this.w <= other.xL
+                    || this.xL >= other.xL + other.w
+                    || this.yL + this.h <= other.yL
+                    || this.yL >= other.yL + other.h) {
                 return false;
             }
             return true;
@@ -123,7 +123,7 @@ public class MapGenerator {
             int h = RandomUtils.uniform(random, 3, 10);
 
             int x = RandomUtils.uniform(random, 1, width - w - 1);
-            int y = RandomUtils.uniform(random, 1, height -h - 1);
+            int y = RandomUtils.uniform(random, 1, height -h - 2);
 
             Room newRoom = new Room(x, y, w, h);
 

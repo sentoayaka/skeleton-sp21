@@ -5,14 +5,10 @@ import byow.TileEngine.Tileset;
 
 import java.io.Serializable;
 
-public class Player implements Serializable{
-    private int x;
-    private int y;
-    private TETile tile;
-
-    public int getX() { return x; }
-    public int getY() { return y; }
-    public TETile getTileUnder() { return tile; }
+public class Player implements Serializable {
+    public int x;
+    public int y;
+    public transient TETile tile;
 
     public Player(int x, int y, TETile tileUnder) {
         this.x = x;

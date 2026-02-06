@@ -40,8 +40,8 @@ public class Engine {
         return seed;
     }
 
-    private TETile[][] generateWorld(long seed) {
-        MapGenerator mg = new MapGenerator(WIDTH, HEIGHT, seed);
+    private TETile[][] generateWorld(long s) {
+        MapGenerator mg = new MapGenerator(WIDTH, HEIGHT, s);
         return mg.build();
     }
 
@@ -52,7 +52,7 @@ public class Engine {
             if (Player.checkLegality(x, y, world)) {
                 player = new Player(x, y, world[x][y]);
                 world[x][y] = Tileset.AVATAR;
-                return ;
+                return;
             }
         }
     }
@@ -73,7 +73,7 @@ public class Engine {
     private void loadGame() {
         File f = new File("save.txt");
         if (!f.exists()) {
-            return ;
+            return;
         }
 
         try {
@@ -84,9 +84,9 @@ public class Engine {
 
             this.seed = state.seed;
             this.world = generateWorld(this.seed);
-
             this.player = state.player;
-            this.world[player.getX()][player.getY()] = Tileset.AVATAR;
+            player.tile = world[player.x][player.y];
+            this.world[player.x][player.y] = Tileset.AVATAR;
 
             is.close();
         } catch (Exception e) {
@@ -103,7 +103,7 @@ public class Engine {
             FileOutputStream fs = new FileOutputStream(f);
             ObjectOutputStream os = new ObjectOutputStream(fs);
 
-             GameState state =new GameState(this.seed, this.player);
+            GameState state =new GameState(this.seed, this.player);
 
             os.writeObject(state);
             os.close();
@@ -113,7 +113,23 @@ public class Engine {
     }
 
     private void render() {
-        ter.renderFrame(world);
+
+        TETile[][] offsetWorld = new TETile[WIDTH][HEIGHT];
+        int visionRange = 5;
+
+        for (int x = 0; x < WIDTH; x++) {
+            for (int y = 0; y < HEIGHT; y++) {
+                double distance = Math.sqrt(Math.pow(x - player.x, 2) + Math.pow(y - player.y, 2));
+
+                if (distance < visionRange) {
+                    offsetWorld[x][y] = world[x][y];
+                } else {
+                    offsetWorld[x][y] = Tileset.NOTHING;
+                }
+            }
+        }
+
+        ter.renderFrame(offsetWorld);
 
         StdDraw.setPenColor(Color.WHITE);
         Font font = new Font("Monospaced", Font.BOLD, 14);
@@ -122,9 +138,9 @@ public class Engine {
         int mouseX = (int) StdDraw.mouseX();
         int mouseY = (int) StdDraw.mouseY();
 
-        if (mouseX >= 0 && mouseX < WIDTH && mouseY >= 0 && mouseY < HEIGHT) {
+        if (mouseX >= 0 && mouseX < WIDTH && mouseY >= 0 && mouseY < HEIGHT - 1) {
             String description = world[mouseX][mouseY].description();
-            StdDraw.textLeft(1, HEIGHT, "Tile: " + description);
+            StdDraw.textLeft(1, HEIGHT - 1, "Tile: " + description);
         }
 
         StdDraw.show();
@@ -143,7 +159,7 @@ public class Engine {
 
             if (c == 'N') {
                 startNewGame(inputSource);
-            } else if(c == 'W' || c == 'S' || c == 'A' || c == 'D') {
+            } else if (c == 'W' || c == 'S' || c == 'A' || c == 'D') {
                 movePlayer(c);
             } else if (c == 'L') {
                 loadGame();
@@ -151,7 +167,7 @@ public class Engine {
                 char next = inputSource.getNextKey();
                 if (next == 'Q') {
                     saveGame();
-                    return ;
+                    return;
                 }
             }
 
@@ -163,7 +179,7 @@ public class Engine {
 
     public void interactWithKeyboard() {
         showGUI = true;
-        ter.initialize(WIDTH, HEIGHT + 1);
+        ter.initialize(WIDTH, HEIGHT);
 
         KeyboardInputSource inputSource = new KeyboardInputSource();
         play(inputSource);

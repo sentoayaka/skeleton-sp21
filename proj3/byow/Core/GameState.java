@@ -3,7 +3,7 @@ import byow.TileEngine.TETile;
 
 import java.io.Serializable;
 
-public class GameState implements Serializable{
+public class GameState implements Serializable {
     public long seed;
     public Player player;
 
